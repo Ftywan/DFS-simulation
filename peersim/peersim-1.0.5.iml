@@ -10,5 +10,6 @@
     <orderEntry type="library" name="peersim-doclet" level="project" />
     <orderEntry type="library" name="jep-2.3.0" level="project" />
     <orderEntry type="library" name="djep-1.0.0" level="project" />
+    <orderEntry type="library" name="projectlombok.lombok" level="project" />
   </component>
 </module>
