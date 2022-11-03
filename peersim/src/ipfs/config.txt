@@ -24,7 +24,7 @@ network.size SIZE
 simulation.endtime CYCLE*CYCLES
 simulation.logtime CYCLE
 
-simulation.experiments 100
+simulation.experiments 1
 
 #################### Network initialization ####################
 init.net ipfs.NetworkInitializer

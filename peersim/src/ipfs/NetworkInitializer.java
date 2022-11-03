@@ -26,7 +26,7 @@ public class NetworkInitializer implements Control {
     }
     @Override
     public boolean execute() {
-        // initialize global file distribution
+        // Initialize global file distribution
         for (int i = 0; i < numOfChunk; i ++) {
             FileChunk chunk = new FileChunk();
             int assignedNodeId = CommonState.r.nextInt(Network.size());
@@ -35,6 +35,7 @@ public class NetworkInitializer implements Control {
         }
 
         // TODO: potentially add a more customized logic to link the nodes
+        // All nodes randomly connects to k nodes which are not guaranteed to be alive
         return false;
     }
 }
