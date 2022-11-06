@@ -1,7 +1,10 @@
 package ipfs;
 
 import peersim.cdsim.CDProtocol;
+import peersim.config.Configuration;
+import peersim.config.FastConfig;
 import peersim.core.CommonState;
+import peersim.core.Linkable;
 import peersim.core.Node;
 import peersim.edsim.EDProtocol;
 
@@ -11,13 +14,9 @@ import java.util.List;
 import java.util.Set;
 
 public class IPFS implements CDProtocol, EDProtocol {
-    private static double NODE_DOWN_RATE = 0.05;
-
     private int bytesSent;
     private int bytesReceived;
-
     private boolean alive;
-
     Set<FileChunk> storage;
 
     /**
@@ -28,7 +27,6 @@ public class IPFS implements CDProtocol, EDProtocol {
         bytesSent = 0;
         bytesReceived = 0;
         storage = new HashSet<>();
-        alive = CommonState.r.nextDouble() >= NODE_DOWN_RATE;
     }
 
     /**
@@ -40,7 +38,9 @@ public class IPFS implements CDProtocol, EDProtocol {
      */
     @Override
     public void nextCycle(Node node, int protocolID) {
-
+        if (! IPFSUtilities.deadNode.contains(node.getIndex()))
+        Linkable linkable = (Linkable) node.getProtocol(FastConfig.getLinkable(protocolID));
+        int targetChunkId = CommonState.r.nextInt(IPFSUtilities.globalContentAddressingTable.size());
     }
 
     @Override

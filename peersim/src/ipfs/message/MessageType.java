@@ -4,5 +4,7 @@ public enum MessageType {
     ADD,
     DELETE,
     RETRIEVE,
-    UPDATE
+    UPDATE,
+    REDIRECTED,
+
 }
