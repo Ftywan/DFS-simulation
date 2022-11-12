@@ -36,12 +36,7 @@ public class IPFSObserver implements Control {
      */
     @Override
     public boolean execute() {
-//        for (int i = 0; i < 25; i++) {
-//            Node node = Network.get(i);
-//            Linkable linkable = (Linkable) node.getProtocol(FastConfig.getLinkable(IPFSProtocolId));
-//
-//            System.out.println(linkable.degree());
-//        }
+        System.out.println("haha");
         return false;
     }
 }

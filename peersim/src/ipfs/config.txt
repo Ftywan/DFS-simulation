@@ -14,8 +14,8 @@ CYCLE SIZE*10000
 # parameters of message transfer
 # delay values here are relative to cycle length, in percentage,
 # eg 50 means half the cycle length, 200 twice the cycle length, etc.
-MINDELAY 0
-MAXDELAY 0
+MINDELAY 5
+MAXDELAY 10
 # drop is a probability, 0<=DROP<=1
 DROP 0
 
@@ -36,6 +36,14 @@ init.rndlink WireKOut
 init.rndlink.k 20
 init.rndlink.protocol link
 
+init.utility ipfs.IPFSUtilities
+init.utility.linkable link
+init.utility.transport tr
+init.utility.step CYCLE
+
+init.sch CDScheduler
+init.sch.protocol ipfs
+init.sch.randstart
 #################### Network protocol ####################
 protocol.link peersim.core.IdleProtocol
 

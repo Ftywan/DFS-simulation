@@ -1,5 +1,6 @@
 package ipfs.message;
 
+import lombok.Getter;
 import peersim.core.Node;
 
 /**
@@ -7,6 +8,7 @@ import peersim.core.Node;
  * A message servers as an event in the simulation.
  */
 public class IPFSMessage {
+    @Getter
     private final Node sender;
     private final MessageType type;
 
