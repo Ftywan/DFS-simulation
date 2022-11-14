@@ -11,8 +11,28 @@ public class IPFSMessage {
     @Getter
     private final Node sender;
     private final MessageType type;
+    private long byteSent;
+    private long byteRecv;
 
+    /**
+     * For Request
+     * @param sender
+     * @param type
+     * @param byteSent
+     * @param byteRecv
+     */
+    public IPFSMessage(Node sender, MessageType type, Long byteSent, Long byteRecv) {
+        this.sender = sender;
+        this.type = type;
+        this.byteSent = byteSent;
+        this.byteRecv = byteRecv;
+    }
 
+    /**
+     * For Response
+     * @param sender
+     * @param type
+     */
     public IPFSMessage(Node sender, MessageType type) {
         this.sender = sender;
         this.type = type;

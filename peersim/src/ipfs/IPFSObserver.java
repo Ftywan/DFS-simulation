@@ -36,7 +36,7 @@ public class IPFSObserver implements Control {
      */
     @Override
     public boolean execute() {
-        System.out.println("haha");
+        System.out.println("Observing");
         return false;
     }
 }

@@ -6,5 +6,6 @@ public enum MessageType {
     RETRIEVE,
     UPDATE,
     REDIRECTED,
-
+    OPERATION_COMPLETED,
+    OPERATION_REJECTED
 }

@@ -5,6 +5,7 @@ import org.jgrapht.Graph;
 import org.jgrapht.GraphPath;
 import org.jgrapht.alg.interfaces.ShortestPathAlgorithm;
 import org.jgrapht.alg.shortestpath.DijkstraShortestPath;
+import org.jgrapht.alg.util.Pair;
 import org.jgrapht.graph.DefaultDirectedGraph;
 import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.graph.DefaultUndirectedWeightedGraph;
@@ -14,6 +15,7 @@ import peersim.core.*;
 import peersim.transport.Transport;
 
 import javax.print.attribute.HashPrintServiceAttributeSet;
+import javax.swing.*;
 import java.awt.*;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -84,33 +86,49 @@ public class IPFSUtilities implements Control {
         return Network.get(nodeId);
     }
 
-    public static IPFSMessage getRandomOperation(Node sender) {
+    public static String getRandomFileIdInSystem() {
+        String[] fileIds = globalContentAddressingTable.keySet().toArray(new String[0]);
+        return fileIds[CommonState.r.nextInt(globalContentAddressingTable.size())];
+    }
+
+//    public static IPFSMessage getRandomOperation(Node sender, Node target, Pair<Long, Long> debt) {
+//        int i = CommonState.r.nextInt(fileOperations.size());
+//        MessageType operation = fileOperations.toArray(new MessageType[0])[i];
+//        IPFSMessage message;
+//        switch(operation) {
+//            case ADD:
+//                FileChunk newFileChunk = new FileChunk();
+//                message = new AddFileMessage(sender, newFileChunk, debt.getFirst(), debt.getSecond());
+//                break;
+//            case DELETE:
+//                String[] deleteIds = globalContentAddressingTable.keySet().toArray(new String[0]);
+//                String deleteId = deleteIds[CommonState.r.nextInt(globalContentAddressingTable.size())];
+//                message = new DeleteFileMessage(sender, deleteId, debt.getFirst(), debt.getSecond());
+//                break;
+//            case RETRIEVE:
+//                String[] retrieveIds = globalContentAddressingTable.keySet().toArray(new String[0]);
+//                String retrieveId = retrieveIds[CommonState.r.nextInt(globalContentAddressingTable.size())];
+//                message = new RetrieveFileMessage(sender, retrieveId);
+//                break;
+//            default:
+//                String[] updateIds = globalContentAddressingTable.keySet().toArray(new String[0]);
+//                String updateId = updateIds[CommonState.r.nextInt(globalContentAddressingTable.size())];
+//                FileChunk updatedFileChunk = new FileChunk();
+//                message = new UpdateFileMessage(sender, updateId, updatedFileChunk);
+//                break;
+//        }
+//        return message;
+//    }
+
+    public static MessageType getRandomRequestType() {
         int i = CommonState.r.nextInt(fileOperations.size());
         MessageType operation = fileOperations.toArray(new MessageType[0])[i];
-        IPFSMessage message;
-        Node target = getRandomNode();
-        switch(operation) {
-            case ADD:
-                FileChunk newFileChunk = new FileChunk();
-                message = new AddFileMessage(sender, newFileChunk);
-                break;
-            case DELETE:
-                String[] deleteIds = globalContentAddressingTable.keySet().toArray(new String[0]);
-                String deleteId = deleteIds[CommonState.r.nextInt(globalContentAddressingTable.size())];
-                message = new DeleteFileMessage(sender, deleteId);
-                break;
-            case RETRIEVE:
-                String[] retrieveIds = globalContentAddressingTable.keySet().toArray(new String[0]);
-                String retrieveId = retrieveIds[CommonState.r.nextInt(globalContentAddressingTable.size())];
-                message = new RetrieveFileMessage(sender, retrieveId);
-                break;
-            default:
-                String[] updateIds = globalContentAddressingTable.keySet().toArray(new String[0]);
-                String updateId = updateIds[CommonState.r.nextInt(globalContentAddressingTable.size())];
-                FileChunk updatedFileChunk = new FileChunk();
-                message = new UpdateFileMessage(sender, updateId, updatedFileChunk);
-                break;
-        }
-        return message;
+        return operation;
+    }
+    public static boolean validDebt(Long byteSent, Long byteReceived) {
+        double debtRatio = byteSent / (byteReceived + 1);
+        double probability = 1 - (1 / (1 + Math.exp(6 - 3 * debtRatio)));
+
+        return CommonState.r.nextDouble(1) <= probability;
     }
 }

@@ -38,7 +38,7 @@ public class NetworkInitializer implements Control {
             FileChunk chunk = new FileChunk();
             int assignedNodeId = CommonState.r.nextInt(Network.size());
             IPFSUtilities.globalContentAddressingTable.put(chunk.getId(), Network.get(assignedNodeId));
-            ((IPFS) Network.get(assignedNodeId).getProtocol(IPFSProtocolId)).storage.add(chunk);
+            ((IPFS) Network.get(assignedNodeId).getProtocol(IPFSProtocolId)).storage.put(chunk.getId(), chunk);
         }
 
         // Initialize the event schedule
