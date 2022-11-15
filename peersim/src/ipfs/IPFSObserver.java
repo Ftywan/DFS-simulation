@@ -8,19 +8,21 @@ import peersim.core.Control;
  */
 public class IPFSObserver implements Control {
     /**
-     *	The protocol to operate on.
-     *	@config
+     * The protocol to operate on.
+     *
+     * @config
      */
-    private static final String PARAM_PROTOCOL ="protocol";
+    private static final String PARAM_PROTOCOL = "protocol";
 
     /**
-     *	Protocol identifier, obtained from config property
+     * Protocol identifier, obtained from config property
      */
     private final int IPFSProtocolId;
 
     /**
-     *	The basic constructor that reads the configuration file.
-     *	@param prefix the configuration prefix for this class
+     * The basic constructor that reads the configuration file.
+     *
+     * @param prefix the configuration prefix for this class
      */
     public IPFSObserver(String prefix) {
         IPFSProtocolId = Configuration.getPid(prefix + "." + PARAM_PROTOCOL);
@@ -28,6 +30,7 @@ public class IPFSObserver implements Control {
 
     /**
      * Method to print system metrics of IPFS and
+     *
      * @return
      */
     @Override

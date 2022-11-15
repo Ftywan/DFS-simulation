@@ -18,6 +18,7 @@ public class IPFSMessage {
 
     /**
      * For Request
+     *
      * @param sender
      * @param type
      * @param byteSent
@@ -31,6 +32,7 @@ public class IPFSMessage {
 
     /**
      * For Response
+     *
      * @param sender
      * @param type
      */

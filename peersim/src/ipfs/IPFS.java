@@ -12,12 +12,13 @@ import java.util.Map;
 import static ipfs.IPFSUtilities.*;
 
 public class IPFS implements CDProtocol, EDProtocol {
-    // peer node ID -> (bytes sent to this peer, bytes received from this peer)
-    private final Map<Long, Ledger> debtMap;
     // TODO: implement interface method for initializer
     final Map<String, FileChunk> storage;
+    private final Map<Long, Ledger> debtMap; // peer node ID -> (bytes sent to this peer, bytes received from this peer)
+
     /**
      * Initializes IPFS
+     *
      * @param prefix
      */
     public IPFS(String prefix) {
@@ -27,10 +28,9 @@ public class IPFS implements CDProtocol, EDProtocol {
 
     /**
      * Triggered by the cycle-driven
-     * @param node
-     *          the node on which this component is run
-     * @param protocolID
-     *          the id of this protocol in the protocol array
+     *
+     * @param node       the node on which this component is run
+     * @param protocolID the id of this protocol in the protocol array
      */
     @Override
     public void nextCycle(Node node, int protocolID) {
@@ -163,7 +163,7 @@ public class IPFS implements CDProtocol, EDProtocol {
     @Override
     public Object clone() {
         Object newProtocol;
-        try{
+        try {
             newProtocol = super.clone();
         } catch (CloneNotSupportedException e) {
             throw new RuntimeException(e);

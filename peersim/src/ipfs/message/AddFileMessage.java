@@ -4,7 +4,7 @@ import ipfs.FileChunk;
 import lombok.Getter;
 import peersim.core.Node;
 
-public class AddFileMessage extends IPFSMessage{
+public class AddFileMessage extends IPFSMessage {
     @Getter
     private final FileChunk chunkToSave;
 

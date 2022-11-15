@@ -18,11 +18,11 @@ import java.util.Set;
 public class IPFSUtilities implements Control {
     private static final String PAR_TRANSPORT = "transport";
     private static final String PAR_LINKABLE = "linkable";
-
-    private final Graph<Node, DefaultWeightedEdge> abstractGraph;
     public static Map<String, Node> globalContentAddressingTable = new HashMap<>();
     public static Set<Long> deadNode = new HashSet<>();
     public static Set<MessageType> fileOperations = new HashSet<>();
+    private static DijkstraShortestPath<Node, DefaultWeightedEdge> shortestPaths;
+
     static {
         fileOperations.add(MessageType.ADD);
         fileOperations.add(MessageType.DELETE);
@@ -30,43 +30,14 @@ public class IPFSUtilities implements Control {
         fileOperations.add(MessageType.UPDATE);
     }
 
+    private final Graph<Node, DefaultWeightedEdge> abstractGraph;
     private final int transport;
     private final int linkable;
-
-    private static DijkstraShortestPath<Node, DefaultWeightedEdge> shortestPaths;
 
     public IPFSUtilities(String prefix) {
         transport = Configuration.getPid(prefix + "." + PAR_TRANSPORT);
         linkable = Configuration.getPid(prefix + "." + PAR_LINKABLE);
         abstractGraph = new DefaultUndirectedWeightedGraph<>(DefaultWeightedEdge.class);
-    }
-
-    public boolean execute() {
-        // Construct the abstract network graph
-        for (int i = 0; i < Network.size(); i++) {
-            Node node = Network.get(i);
-            abstractGraph.addVertex(node);
-        }
-
-        // Edges can only be added after vertices are added
-        for (int i = 0; i < Network.size(); i ++) {
-            Node node = Network.get(i);
-            Linkable linkable = (Linkable) node.getProtocol(this.linkable);
-            for (int j = 0; j < linkable.degree(); j++) {
-                Transport transport = (Transport) node.getProtocol(this.transport);
-                Node neighbor = linkable.getNeighbor(j);
-                abstractGraph.addEdge(node, neighbor, new DefaultWeightedEdge());
-                abstractGraph.setEdgeWeight(node, neighbor, transport.getLatency(node, neighbor));
-            }
-        }
-
-        shortestPaths = new DijkstraShortestPath<>(abstractGraph);
-
-        return false;
-    }
-
-    public GraphPath<Node, DefaultWeightedEdge> getShortestPath(Node from, Node to) {
-        return shortestPaths.getPaths(from).getPath(to);
     }
 
     public static long getLatency(Node from, Node to) {
@@ -82,6 +53,19 @@ public class IPFSUtilities implements Control {
     public static String getRandomFileIdInSystem() {
         String[] fileIds = globalContentAddressingTable.keySet().toArray(new String[0]);
         return fileIds[CommonState.r.nextInt(globalContentAddressingTable.size())];
+    }
+
+    public static MessageType getRandomRequestType() {
+        int i = CommonState.r.nextInt(fileOperations.size());
+        MessageType operation = fileOperations.toArray(new MessageType[0])[i];
+        return operation;
+    }
+
+    public static boolean validDebt(Long byteSent, Long byteReceived) {
+        double debtRatio = byteSent / (byteReceived + 1);
+        double probability = 1 - (1 / (1 + Math.exp(6 - 3 * debtRatio)));
+
+        return CommonState.r.nextDouble() <= probability;
     }
 
 //    public static IPFSMessage getRandomOperation(Node sender, Node target, Pair<Long, Long> debt) {
@@ -113,15 +97,31 @@ public class IPFSUtilities implements Control {
 //        return message;
 //    }
 
-    public static MessageType getRandomRequestType() {
-        int i = CommonState.r.nextInt(fileOperations.size());
-        MessageType operation = fileOperations.toArray(new MessageType[0])[i];
-        return operation;
-    }
-    public static boolean validDebt(Long byteSent, Long byteReceived) {
-        double debtRatio = byteSent / (byteReceived + 1);
-        double probability = 1 - (1 / (1 + Math.exp(6 - 3 * debtRatio)));
+    public boolean execute() {
+        // Construct the abstract network graph
+        for (int i = 0; i < Network.size(); i++) {
+            Node node = Network.get(i);
+            abstractGraph.addVertex(node);
+        }
 
-        return CommonState.r.nextDouble() <= probability;
+        // Edges can only be added after vertices are added
+        for (int i = 0; i < Network.size(); i++) {
+            Node node = Network.get(i);
+            Linkable linkable = (Linkable) node.getProtocol(this.linkable);
+            for (int j = 0; j < linkable.degree(); j++) {
+                Transport transport = (Transport) node.getProtocol(this.transport);
+                Node neighbor = linkable.getNeighbor(j);
+                abstractGraph.addEdge(node, neighbor, new DefaultWeightedEdge());
+                abstractGraph.setEdgeWeight(node, neighbor, transport.getLatency(node, neighbor));
+            }
+        }
+
+        shortestPaths = new DijkstraShortestPath<>(abstractGraph);
+
+        return false;
+    }
+
+    public GraphPath<Node, DefaultWeightedEdge> getShortestPath(Node from, Node to) {
+        return shortestPaths.getPaths(from).getPath(to);
     }
 }

@@ -11,7 +11,7 @@ import peersim.core.Network;
  */
 public class NetworkInitializer implements Control {
 
-    private static final String PARAM_PROTOCOL ="protocol";
+    private static final String PARAM_PROTOCOL = "protocol";
     private static final String PARAM_NUM_CHUNK = "numChunk";
     private static final double NODE_DOWN_RATE = 0.05;
 
@@ -19,9 +19,10 @@ public class NetworkInitializer implements Control {
     private final int numOfChunk;
 
     public NetworkInitializer(String prefix) {
-        IPFSProtocolId = Configuration.getPid(prefix+"."+ PARAM_PROTOCOL);
+        IPFSProtocolId = Configuration.getPid(prefix + "." + PARAM_PROTOCOL);
         numOfChunk = Configuration.getInt(prefix + "." + PARAM_NUM_CHUNK);
     }
+
     @Override
     public boolean execute() {
         // Initialize dead nodes
@@ -32,7 +33,7 @@ public class NetworkInitializer implements Control {
         }
 
         // Initialize global file distribution
-        for (int i = 0; i < numOfChunk; i ++) {
+        for (int i = 0; i < numOfChunk; i++) {
             FileChunk chunk = new FileChunk();
             int assignedNodeId = CommonState.r.nextInt(Network.size());
             IPFSUtilities.globalContentAddressingTable.put(chunk.getId(), Network.get(assignedNodeId));
