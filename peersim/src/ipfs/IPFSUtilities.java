@@ -1,5 +1,6 @@
 package ipfs;
 
+import ipfs.message.IPFSMessage;
 import ipfs.message.MessageType;
 import org.jgrapht.Graph;
 import org.jgrapht.GraphPath;
@@ -22,12 +23,12 @@ public class IPFSUtilities implements Control {
     public static Set<Long> deadNode = new HashSet<>();
     public static Set<MessageType> fileOperations = new HashSet<>();
     private static DijkstraShortestPath<Node, DefaultWeightedEdge> shortestPaths;
-
+    public static HashMap<IPFSMessage, Boolean> globalRequestStatus;
     static {
         fileOperations.add(MessageType.ADD);
         fileOperations.add(MessageType.DELETE);
         fileOperations.add(MessageType.RETRIEVE);
-        fileOperations.add(MessageType.UPDATE);
+//        fileOperations.add(MessageType.UPDATE);
     }
 
     private final Graph<Node, DefaultWeightedEdge> abstractGraph;
@@ -38,16 +39,20 @@ public class IPFSUtilities implements Control {
         transport = Configuration.getPid(prefix + "." + PAR_TRANSPORT);
         linkable = Configuration.getPid(prefix + "." + PAR_LINKABLE);
         abstractGraph = new DefaultUndirectedWeightedGraph<>(DefaultWeightedEdge.class);
+        globalRequestStatus = new HashMap<>();
     }
 
-    public static long getLatency(Node from, Node to) {
-        System.out.println(shortestPaths.getPathWeight(from, to));
-        return (long) shortestPaths.getPathWeight(from, to);
-    }
-
+//    Randomization Utils ==============================================================================================
     public static Node getRandomNode() {
-        int nodeId = CommonState.r.nextInt(Network.size());
-        return Network.get(nodeId);
+        int nodeId;
+        Node node;
+
+        do {
+            nodeId = CommonState.r.nextInt(Network.size());
+            node = Network.get(nodeId);
+        } while (! node.isUp());
+
+        return node;
     }
 
     public static String getRandomFileIdInSystem() {
@@ -61,61 +66,35 @@ public class IPFSUtilities implements Control {
         return operation;
     }
 
-    public static boolean validDebt(Long byteSent, Long byteReceived) {
-        double debtRatio = byteSent / (byteReceived + 1);
-        double probability = 1 - (1 / (1 + Math.exp(6 - 3 * debtRatio)));
-
-        return CommonState.r.nextDouble() <= probability;
-    }
-
-//    public static IPFSMessage getRandomOperation(Node sender, Node target, Pair<Long, Long> debt) {
-//        int i = CommonState.r.nextInt(fileOperations.size());
-//        MessageType operation = fileOperations.toArray(new MessageType[0])[i];
-//        IPFSMessage message;
-//        switch(operation) {
-//            case ADD:
-//                FileChunk newFileChunk = new FileChunk();
-//                message = new AddFileMessage(sender, newFileChunk, debt.getFirst(), debt.getSecond());
-//                break;
-//            case DELETE:
-//                String[] deleteIds = globalContentAddressingTable.keySet().toArray(new String[0]);
-//                String deleteId = deleteIds[CommonState.r.nextInt(globalContentAddressingTable.size())];
-//                message = new DeleteFileMessage(sender, deleteId, debt.getFirst(), debt.getSecond());
-//                break;
-//            case RETRIEVE:
-//                String[] retrieveIds = globalContentAddressingTable.keySet().toArray(new String[0]);
-//                String retrieveId = retrieveIds[CommonState.r.nextInt(globalContentAddressingTable.size())];
-//                message = new RetrieveFileMessage(sender, retrieveId);
-//                break;
-//            default:
-//                String[] updateIds = globalContentAddressingTable.keySet().toArray(new String[0]);
-//                String updateId = updateIds[CommonState.r.nextInt(globalContentAddressingTable.size())];
-//                FileChunk updatedFileChunk = new FileChunk();
-//                message = new UpdateFileMessage(sender, updateId, updatedFileChunk);
-//                break;
-//        }
-//        return message;
-//    }
-
+//    Network Topology =================================================================================================
     public boolean execute() {
-        // Construct the abstract network graph
+        // Construct the abstract network graph, excluding those which are not up
         for (int i = 0; i < Network.size(); i++) {
-            Node node = Network.get(i);
-            abstractGraph.addVertex(node);
+            if (Network.get(i).isUp()) {
+                Node node = Network.get(i);
+                abstractGraph.addVertex(node);
+            }
         }
 
-        // Edges can only be added after vertices are added
+        // Add edges and set the weights
         for (int i = 0; i < Network.size(); i++) {
             Node node = Network.get(i);
+            if (! node.isUp()) {
+                continue;
+            }
             Linkable linkable = (Linkable) node.getProtocol(this.linkable);
             for (int j = 0; j < linkable.degree(); j++) {
                 Transport transport = (Transport) node.getProtocol(this.transport);
                 Node neighbor = linkable.getNeighbor(j);
+                if (! neighbor.isUp()) {
+                    continue;
+                }
                 abstractGraph.addEdge(node, neighbor, new DefaultWeightedEdge());
                 abstractGraph.setEdgeWeight(node, neighbor, transport.getLatency(node, neighbor));
             }
         }
 
+        // Generate the shortest paths among up nodes using Dijkstra
         shortestPaths = new DijkstraShortestPath<>(abstractGraph);
 
         return false;
@@ -123,5 +102,16 @@ public class IPFSUtilities implements Control {
 
     public GraphPath<Node, DefaultWeightedEdge> getShortestPath(Node from, Node to) {
         return shortestPaths.getPaths(from).getPath(to);
+    }
+
+    public static long getLatency(Node from, Node to) {
+        return (long) shortestPaths.getPathWeight(from, to);
+    }
+//    Bitswap===========================================================================================================
+    public static boolean validDebt(Ledger ledger) {
+        double debtRatio = (double) ledger.getByteSent() / (ledger.getByteRecv() + 1);
+        double probability = 1 - (1 / (1 + Math.exp(6 - 3 * debtRatio)));
+
+        return CommonState.r.nextDouble() <= probability;
     }
 }

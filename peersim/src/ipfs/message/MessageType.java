@@ -5,7 +5,6 @@ public enum MessageType {
     DELETE,
     RETRIEVE,
     UPDATE,
-    REDIRECTED,
     OPERATION_COMPLETED,
     OPERATION_REJECTED
 }

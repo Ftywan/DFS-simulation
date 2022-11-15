@@ -2,6 +2,7 @@ package ipfs;
 
 import ipfs.message.*;
 import peersim.cdsim.CDProtocol;
+import peersim.core.CommonState;
 import peersim.core.Node;
 import peersim.edsim.EDProtocol;
 import peersim.edsim.EDSimulator;
@@ -13,17 +14,13 @@ import static ipfs.IPFSUtilities.*;
 
 public class IPFS implements CDProtocol, EDProtocol {
     // TODO: implement interface method for initializer
-    final Map<String, FileChunk> storage;
-    private final Map<Long, Ledger> debtMap; // peer node ID -> (bytes sent to this peer, bytes received from this peer)
-
-    /**
-     * Initializes IPFS
-     *
-     * @param prefix
-     */
+    private Map<String, FileChunk> storage;
+    private Map<Long, Ledger> debtMap; // peer node ID -> (bytes sent to this peer, bytes received from this peer)
+//    private Map<IPFSMessage, Boolean> globalRequestStatus; // message reference -> null (haven't heard back) / false (rejected) / true (completed)
     public IPFS(String prefix) {
         debtMap = new HashMap<>();
         storage = new HashMap();
+//        globalRequestStatus = new HashMap<>();
     }
 
     /**
@@ -37,36 +34,35 @@ public class IPFS implements CDProtocol, EDProtocol {
         Node dest;
         IPFSMessage message;
         MessageType type = getRandomRequestType();
+
         if (type == MessageType.ADD) {
             dest = getRandomNode();
             Ledger debt = getDebtInfo(dest.getID());
             message = new AddFileMessage(node, new FileChunk(), debt.getByteSent(), debt.getByteRecv());
-            EDSimulator.add(getLatency(node, dest), message, dest, protocolID);
 
         } else if (type == MessageType.DELETE) {
             String chunkId = getRandomFileIdInSystem();
             dest = globalContentAddressingTable.get(chunkId);
             Ledger debt = getDebtInfo(dest.getID());
             message = new DeleteFileMessage(node, chunkId, debt.getByteSent(), debt.getByteRecv());
-            EDSimulator.add(getLatency(node, dest), message, dest, protocolID);
 
         } else if (type == MessageType.RETRIEVE) {
             String chunkId = getRandomFileIdInSystem();
             dest = globalContentAddressingTable.get(chunkId);
             Ledger debt = getDebtInfo(dest.getID());
             message = new RetrieveFileMessage(node, chunkId, debt.getByteSent(), debt.getByteRecv());
-            EDSimulator.add(getLatency(node, dest), message, dest, protocolID);
-
-        } else if (type == MessageType.UPDATE) {
-            String chunkId = getRandomFileIdInSystem();
-            dest = globalContentAddressingTable.get(chunkId);
-            Ledger debt = getDebtInfo(dest.getID());
-            message = new UpdateFileMessage(node, chunkId, new FileChunk(), debt.getByteSent(), debt.getByteRecv());
-            EDSimulator.add(getLatency(node, dest), message, dest, protocolID);
-
+//        } else if (type == MessageType.UPDATE) {
+//            String chunkId = getRandomFileIdInSystem();
+//            dest = globalContentAddressingTable.get(chunkId);
+//            Ledger debt = getDebtInfo(dest.getID());
+//            message = new UpdateFileMessage(node, chunkId, new FileChunk(), debt.getByteSent(), debt.getByteRecv());
+//            EDSimulator.add(getLatency(node, dest), message, dest, protocolID);
         } else {
             throw new UnsupportedOperationException();
         }
+
+        EDSimulator.add(getLatency(node, dest), message, dest, protocolID);
+        globalRequestStatus.put(message, null);
     }
 
     @Override
@@ -76,8 +72,12 @@ public class IPFS implements CDProtocol, EDProtocol {
         // Handle file operation requests
         if (fileOperations.contains(message.getType())) {
             Ledger ledger = message.getLedger();
-            boolean bitSwap = validDebt(ledger.getByteSent(), ledger.getByteRecv());
+            boolean bitSwap = validDebt(ledger);
             IPFSMessage resp;
+
+            if (! debtMap.containsKey(message.getSender().getID())) {
+                debtMap.put(message.getSender().getID(), new Ledger(0, 0));
+            }
 
             if (message instanceof AddFileMessage) {
                 // Check debt ratio
@@ -116,26 +116,26 @@ public class IPFS implements CDProtocol, EDProtocol {
 
                     FileChunk chunk = storage.get(chunkId);
                     debtMap.get(message.getSender().getID()).incrementByteSent(1);
-                    resp = new RetrieveFileResponse(message.getSender(), MessageType.OPERATION_COMPLETED, chunk);
+                    resp = new RetrieveFileResponse(node, MessageType.OPERATION_COMPLETED, chunk);
                 } else {
-                    resp = new RetrieveFileResponse(message.getSender(), MessageType.OPERATION_REJECTED, null);
+                    resp = new RetrieveFileResponse(node, MessageType.OPERATION_REJECTED, null);
                 }
 
-            } else if (message instanceof UpdateFileMessage) {
-                System.out.println("Processing updating");
-                if (bitSwap) {
-                    UpdateFileMessage updateFileMessage = (UpdateFileMessage) message;
-                    String chunkId = updateFileMessage.getChunkId();
-                    FileChunk newContent = updateFileMessage.getChunkToUpdate();
-
-                    storage.put(chunkId, newContent);
-                    globalContentAddressingTable.put(newContent.getId(), node);
-                    debtMap.get(message.getSender().getID()).incrementByteRecv(1);
-
-                    resp = new UpdateFileResponse(message.getSender(), MessageType.OPERATION_COMPLETED);
-                } else {
-                    resp = new UpdateFileResponse(message.getSender(), MessageType.OPERATION_REJECTED);
-                }
+//            } else if (message instanceof UpdateFileMessage) {
+//                System.out.println("Processing updating");
+//                if (bitSwap) {
+//                    UpdateFileMessage updateFileMessage = (UpdateFileMessage) message;
+//                    String chunkId = updateFileMessage.getChunkId();
+//                    FileChunk newContent = updateFileMessage.getChunkToUpdate();
+//
+//                    storage.put(chunkId, newContent);
+//                    globalContentAddressingTable.put(newContent.getId(), node);
+//                    debtMap.get(message.getSender().getID()).incrementByteRecv(1);
+//
+//                    resp = new UpdateFileResponse(message.getSender(), MessageType.OPERATION_COMPLETED);
+//                } else {
+//                    resp = new UpdateFileResponse(message.getSender(), MessageType.OPERATION_REJECTED);
+//                }
             } else {
                 throw new UnsupportedOperationException();
             }
@@ -146,14 +146,16 @@ public class IPFS implements CDProtocol, EDProtocol {
 
         // Handle file operation responses
         else {
+            globalRequestStatus.put(message, message.getType() == MessageType.OPERATION_COMPLETED);
+
             if (message instanceof AddFileResponse) {
                 debtMap.get(message.getSender().getID()).incrementByteSent(1);
             } else if (message instanceof DeleteFileResponse) {
                 // No changes in debt ledger for deletion operations
             } else if (message instanceof RetrieveFileResponse) {
                 debtMap.get(message.getSender().getID()).incrementByteRecv(1);
-            } else if (message instanceof UpdateFileMessage) {
-                debtMap.get(message.getSender().getID()).incrementByteSent(1);
+//            } else if (message instanceof UpdateFileMessage) {
+//                debtMap.get(message.getSender().getID()).incrementByteSent(1);
             } else {
                 throw new UnsupportedOperationException();
             }
@@ -168,17 +170,23 @@ public class IPFS implements CDProtocol, EDProtocol {
         } catch (CloneNotSupportedException e) {
             throw new RuntimeException(e);
         }
+        ((IPFS) newProtocol).storage = new HashMap<>();
+        ((IPFS) newProtocol).debtMap = new HashMap<>();
+//        ((IPFS) newProtocol).globalRequestStatus = new HashMap<>();
 
         return newProtocol;
     }
 
+//    Utils=============================================================================================================
     private Ledger getDebtInfo(Long nodeId) {
-        if (debtMap.containsKey(nodeId)) {
-            return debtMap.get(nodeId);
-        } else {
-            Ledger emptyDebt = new Ledger(0, 0);
-            debtMap.put(nodeId, emptyDebt);
-            return emptyDebt;
+        if (! debtMap.containsKey(nodeId)) {
+            debtMap.put(nodeId, new Ledger(0, 0));
         }
+
+        return debtMap.get(nodeId);
+    }
+
+    public void addToStorage(FileChunk fileChunk) {
+        this.storage.put(fileChunk.getId(), fileChunk);
     }
 }
