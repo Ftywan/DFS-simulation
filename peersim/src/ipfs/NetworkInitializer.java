@@ -1,12 +1,10 @@
 package ipfs;
 
-import ipfs.message.IPFSMessage;
-import ipfs.message.MessageType;
 import peersim.config.Configuration;
-import peersim.core.*;
-import peersim.edsim.EDSimulator;
-
-import static ipfs.IPFSUtilities.getRandomNode;
+import peersim.core.CommonState;
+import peersim.core.Control;
+import peersim.core.Fallible;
+import peersim.core.Network;
 
 /**
  * Initializer class for the entre network, with all the nodes
@@ -17,8 +15,8 @@ public class NetworkInitializer implements Control {
     private static final String PARAM_NUM_CHUNK = "numChunk";
     private static final double NODE_DOWN_RATE = 0.05;
 
-    private int IPFSProtocolId;
-    private int numOfChunk;
+    private final int IPFSProtocolId;
+    private final int numOfChunk;
 
     public NetworkInitializer(String prefix) {
         IPFSProtocolId = Configuration.getPid(prefix+"."+ PARAM_PROTOCOL);

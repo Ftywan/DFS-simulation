@@ -1,22 +1,15 @@
 package ipfs;
 
-import ipfs.message.*;
+import ipfs.message.MessageType;
 import org.jgrapht.Graph;
 import org.jgrapht.GraphPath;
-import org.jgrapht.alg.interfaces.ShortestPathAlgorithm;
 import org.jgrapht.alg.shortestpath.DijkstraShortestPath;
-import org.jgrapht.alg.util.Pair;
-import org.jgrapht.graph.DefaultDirectedGraph;
-import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.graph.DefaultUndirectedWeightedGraph;
 import org.jgrapht.graph.DefaultWeightedEdge;
 import peersim.config.Configuration;
 import peersim.core.*;
 import peersim.transport.Transport;
 
-import javax.print.attribute.HashPrintServiceAttributeSet;
-import javax.swing.*;
-import java.awt.*;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;

@@ -10,9 +10,9 @@ import peersim.core.Node;
  */
 public class IPFSMessage {
     @Getter
-    private Node sender;
+    private final Node sender;
     @Getter
-    private MessageType type;
+    private final MessageType type;
     @Getter
     private Ledger ledger;
 

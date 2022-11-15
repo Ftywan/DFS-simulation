@@ -1,6 +1,5 @@
 package ipfs.message;
 
-import lombok.Getter;
 import peersim.core.Node;
 
 public class AddFileResponse extends IPFSMessage{

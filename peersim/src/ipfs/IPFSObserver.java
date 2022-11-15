@@ -1,11 +1,7 @@
 package ipfs;
 
 import peersim.config.Configuration;
-import peersim.config.FastConfig;
 import peersim.core.Control;
-import peersim.core.Linkable;
-import peersim.core.Network;
-import peersim.core.Node;
 
 /**
  * Observer class to monitor the overall status and generate simulation results

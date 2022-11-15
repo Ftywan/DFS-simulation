@@ -1,7 +1,6 @@
 package ipfs.message;
 
 import ipfs.FileChunk;
-import ipfs.IPFS;
 import lombok.Getter;
 import peersim.core.Node;
 
