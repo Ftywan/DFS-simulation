@@ -2,4 +2,6 @@
 .DS_Store
 
 bitpeer/.idea/
+peersim/.idea/
 peersim/out/
+peersim/peersim.iml

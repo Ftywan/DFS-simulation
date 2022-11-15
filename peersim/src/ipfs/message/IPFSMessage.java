@@ -1,5 +1,6 @@
 package ipfs.message;
 
+import ipfs.Ledger;
 import lombok.Getter;
 import peersim.core.Node;
 
@@ -9,10 +10,11 @@ import peersim.core.Node;
  */
 public class IPFSMessage {
     @Getter
-    private final Node sender;
-    private final MessageType type;
-    private long byteSent;
-    private long byteRecv;
+    private Node sender;
+    @Getter
+    private MessageType type;
+    @Getter
+    private Ledger ledger;
 
     /**
      * For Request
@@ -24,8 +26,7 @@ public class IPFSMessage {
     public IPFSMessage(Node sender, MessageType type, Long byteSent, Long byteRecv) {
         this.sender = sender;
         this.type = type;
-        this.byteSent = byteSent;
-        this.byteRecv = byteRecv;
+        this.ledger = new Ledger(byteSent, byteRecv);
     }
 
     /**

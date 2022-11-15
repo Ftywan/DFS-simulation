@@ -129,6 +129,6 @@ public class IPFSUtilities implements Control {
         double debtRatio = byteSent / (byteReceived + 1);
         double probability = 1 - (1 / (1 + Math.exp(6 - 3 * debtRatio)));
 
-        return CommonState.r.nextDouble(1) <= probability;
+        return CommonState.r.nextDouble() <= probability;
     }
 }
