@@ -15,11 +15,11 @@ import static ipfs.IPFSUtilities.*;
 
 public class IPFS implements CDProtocol, EDProtocol {
     private static final String PARAM_DROP = "drop";
+    //    private Map<IPFSMessage, Boolean> globalRequestStatus; // message reference -> null (haven't heard back) / false (rejected) / true (completed)
+    private final double dropRate;
     // TODO: implement interface method for initializer
     private Map<String, FileChunk> storage;
     private Map<Long, Ledger> debtMap; // peer node ID -> (bytes sent to this peer, bytes received from this peer)
-    //    private Map<IPFSMessage, Boolean> globalRequestStatus; // message reference -> null (haven't heard back) / false (rejected) / true (completed)
-    private final double dropRate;
 
     public IPFS(String prefix) {
         debtMap = new HashMap<>();

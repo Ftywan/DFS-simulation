@@ -1,10 +1,9 @@
 package ipfs.message;
 
-import ipfs.IPFS;
 import lombok.Getter;
 import peersim.core.Node;
 
-public class IPFSResponse extends IPFSMessage{
+public class IPFSResponse extends IPFSMessage {
     @Getter
     IPFSMessage requestMessage;
 
