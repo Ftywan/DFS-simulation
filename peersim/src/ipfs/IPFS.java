@@ -2,6 +2,7 @@ package ipfs;
 
 import ipfs.message.*;
 import peersim.cdsim.CDProtocol;
+import peersim.config.Configuration;
 import peersim.core.CommonState;
 import peersim.core.Node;
 import peersim.edsim.EDProtocol;
@@ -13,14 +14,17 @@ import java.util.Map;
 import static ipfs.IPFSUtilities.*;
 
 public class IPFS implements CDProtocol, EDProtocol {
+    private static final String PARAM_DROP = "drop";
     // TODO: implement interface method for initializer
     private Map<String, FileChunk> storage;
     private Map<Long, Ledger> debtMap; // peer node ID -> (bytes sent to this peer, bytes received from this peer)
-//    private Map<IPFSMessage, Boolean> globalRequestStatus; // message reference -> null (haven't heard back) / false (rejected) / true (completed)
+    //    private Map<IPFSMessage, Boolean> globalRequestStatus; // message reference -> null (haven't heard back) / false (rejected) / true (completed)
+    private final double dropRate;
+
     public IPFS(String prefix) {
         debtMap = new HashMap<>();
         storage = new HashMap();
-//        globalRequestStatus = new HashMap<>();
+        dropRate = Configuration.getDouble(prefix + "." + PARAM_DROP);
     }
 
     /**
@@ -61,8 +65,14 @@ public class IPFS implements CDProtocol, EDProtocol {
             throw new UnsupportedOperationException();
         }
 
-        EDSimulator.add(getLatency(node, dest), message, dest, protocolID);
-        globalRequestStatus.put(message, null);
+        // random drop
+        if (CommonState.r.nextDouble() > dropRate) {
+            EDSimulator.add(getLatency(node, dest), message, dest, protocolID);
+            globalRequestStatus.put(message, MessageStatus.FLYING);
+        } else {
+            globalRequestStatus.put(message, MessageStatus.DROPPED);
+        }
+
     }
 
     @Override
@@ -75,7 +85,7 @@ public class IPFS implements CDProtocol, EDProtocol {
             boolean bitSwap = validDebt(ledger);
             IPFSMessage resp;
 
-            if (! debtMap.containsKey(message.getSender().getID())) {
+            if (!debtMap.containsKey(message.getSender().getID())) {
                 debtMap.put(message.getSender().getID(), new Ledger(0, 0));
             }
 
@@ -90,9 +100,9 @@ public class IPFS implements CDProtocol, EDProtocol {
                     globalContentAddressingTable.put(fileChunk.getId(), node);
                     debtMap.get(message.getSender().getID()).incrementByteRecv(1);
 
-                    resp = new AddFileResponse(node, MessageType.OPERATION_COMPLETED);
+                    resp = new AddFileResponse(node, MessageType.OPERATION_COMPLETED, message);
                 } else {
-                    resp = new AddFileResponse(node, MessageType.OPERATION_REJECTED);
+                    resp = new AddFileResponse(node, MessageType.OPERATION_REJECTED, message);
                 }
 
             } else if (message instanceof DeleteFileMessage) {
@@ -103,9 +113,9 @@ public class IPFS implements CDProtocol, EDProtocol {
                     storage.remove(fileChunkId);
                     globalContentAddressingTable.remove(fileChunkId);
 
-                    resp = new DeleteFileResponse(node, MessageType.OPERATION_COMPLETED);
+                    resp = new DeleteFileResponse(node, MessageType.OPERATION_COMPLETED, message);
                 } else {
-                    resp = new DeleteFileResponse(node, MessageType.OPERATION_REJECTED);
+                    resp = new DeleteFileResponse(node, MessageType.OPERATION_REJECTED, message);
                 }
 
 
@@ -116,9 +126,9 @@ public class IPFS implements CDProtocol, EDProtocol {
 
                     FileChunk chunk = storage.get(chunkId);
                     debtMap.get(message.getSender().getID()).incrementByteSent(1);
-                    resp = new RetrieveFileResponse(node, MessageType.OPERATION_COMPLETED, chunk);
+                    resp = new RetrieveFileResponse(node, MessageType.OPERATION_COMPLETED, chunk, message);
                 } else {
-                    resp = new RetrieveFileResponse(node, MessageType.OPERATION_REJECTED, null);
+                    resp = new RetrieveFileResponse(node, MessageType.OPERATION_REJECTED, null, message);
                 }
 
 //            } else if (message instanceof UpdateFileMessage) {
@@ -140,13 +150,19 @@ public class IPFS implements CDProtocol, EDProtocol {
                 throw new UnsupportedOperationException();
             }
 
+            // Simulating dropping
             // Send response back to the file operation requester
-            EDSimulator.add(getLatency(node, message.getSender()), resp, message.getSender(), pid);
+            if (CommonState.r.nextDouble() > dropRate) {
+                EDSimulator.add(getLatency(node, message.getSender()), resp, message.getSender(), pid);
+            } else {
+                assert (globalRequestStatus.containsKey(message));
+                globalRequestStatus.put(message, MessageStatus.DROPPED);
+            }
         }
 
         // Handle file operation responses
-        else {
-            globalRequestStatus.put(message, message.getType() == MessageType.OPERATION_COMPLETED);
+        else if (message instanceof IPFSResponse) {
+            globalRequestStatus.put(((IPFSResponse) message).getRequestMessage(), message.getType() == MessageType.OPERATION_COMPLETED ? MessageStatus.SUCCESS : MessageStatus.REJECTED);
 
             if (message instanceof AddFileResponse) {
                 debtMap.get(message.getSender().getID()).incrementByteSent(1);
@@ -177,9 +193,9 @@ public class IPFS implements CDProtocol, EDProtocol {
         return newProtocol;
     }
 
-//    Utils=============================================================================================================
+    //    Utils=============================================================================================================
     private Ledger getDebtInfo(Long nodeId) {
-        if (! debtMap.containsKey(nodeId)) {
+        if (!debtMap.containsKey(nodeId)) {
             debtMap.put(nodeId, new Ledger(0, 0));
         }
 

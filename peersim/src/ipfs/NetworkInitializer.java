@@ -38,7 +38,7 @@ public class NetworkInitializer implements Control {
             int assignedNodeId;
             do {
                 assignedNodeId = CommonState.r.nextInt(Network.size());
-            } while (! Network.get(assignedNodeId).isUp());
+            } while (!Network.get(assignedNodeId).isUp());
             IPFSUtilities.globalContentAddressingTable.put(chunk.getId(), Network.get(assignedNodeId));
             ((IPFS) Network.get(assignedNodeId).getProtocol(IPFSProtocolId)).addToStorage(chunk);
         }

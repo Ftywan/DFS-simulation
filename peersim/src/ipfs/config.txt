@@ -14,10 +14,10 @@ CYCLE SIZE*1000
 # parameters of message transfer
 # delay values here are relative to cycle length, in percentage,
 # eg 50 means half the cycle length, 200 twice the cycle length, etc.
-MINDELAY 5
-MAXDELAY 10
+MINDELAY 0
+MAXDELAY 50
 # drop is a probability, 0<=DROP<=1
-DROP 0.3
+DROP 0
 
 random.seed 1234567890
 network.size SIZE
@@ -57,8 +57,9 @@ protocol.tr.drop DROP
 
 #################### IPFS protocol ####################
 protocol.ipfs ipfs.IPFS
-protocol.ipfs.transport tr
-protocol.ipfs.linkable link
+protocol.ipfs.drop DROP
+#protocol.ipfs.transport tr
+#protocol.ipfs.linkable link
 protocol.ipfs.step CYCLE
 
 #################### observer ####################
