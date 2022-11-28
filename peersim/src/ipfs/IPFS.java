@@ -66,7 +66,7 @@ public class IPFS implements CDProtocol, EDProtocol {
         }
 
         // random drop
-        if (CommonState.r.nextDouble() > dropRate) {
+        if (!dropped(node, dest, dropRate)) {
             EDSimulator.add(getLatency(node, dest), message, dest, protocolID);
             globalRequestStatus.put(message, MessageStatus.FLYING);
         } else {
@@ -152,7 +152,7 @@ public class IPFS implements CDProtocol, EDProtocol {
 
             // Simulating dropping
             // Send response back to the file operation requester
-            if (CommonState.r.nextDouble() > dropRate) {
+            if (!dropped(node, message.getSender(), dropRate)) {
                 EDSimulator.add(getLatency(node, message.getSender()), resp, message.getSender(), pid);
             } else {
                 assert (globalRequestStatus.containsKey(message));

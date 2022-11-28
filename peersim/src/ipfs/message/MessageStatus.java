@@ -1,4 +1,4 @@
-package ipfs;
+package ipfs.message;
 
 public enum MessageStatus {
     FLYING,

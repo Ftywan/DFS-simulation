@@ -1,6 +1,7 @@
 package ipfs;
 
 import ipfs.message.IPFSMessage;
+import ipfs.message.MessageStatus;
 import ipfs.message.MessageType;
 import org.jgrapht.Graph;
 import org.jgrapht.GraphPath;
@@ -69,6 +70,12 @@ public class IPFSUtilities implements Control {
 
     public static long getLatency(Node from, Node to) {
         return (long) shortestPaths.getPathWeight(from, to);
+    }
+
+    public static boolean dropped(Node from, Node to , double dropRate) {
+        int pathSections = shortestPaths.getPath(from, to).getLength();
+        double successRate = Math.pow((1-dropRate), pathSections);
+        return CommonState.r.nextDouble() > successRate;
     }
 
     //    Bitswap===========================================================================================================

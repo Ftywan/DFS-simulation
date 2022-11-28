@@ -1,6 +1,7 @@
 package ipfs;
 
 import ipfs.message.IPFSMessage;
+import ipfs.message.MessageStatus;
 import peersim.config.Configuration;
 import peersim.core.Control;
 
