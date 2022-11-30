@@ -66,3 +66,7 @@ protocol.ipfs.step CYCLE
 control.observer ipfs.IPFSObserver
 control.observer.protocol ipfs
 control.observer.step 10000
+control.observer.size SIZE
+control.observer.droprate DROP
+control.observer.mindelay MINDELAY
+control.observer.maxdelay MAXDELAY

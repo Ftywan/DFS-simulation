@@ -19,11 +19,18 @@ public class IPFSObserver implements Control {
      * @config
      */
     private static final String PARAM_PROTOCOL = "protocol";
-
+    private static final String PARAM_NETSIZE = "size";
+    private static final String PARAM_DROPRATE = "droprate";
+    private static final String PARAM_MINDELAY = "mindelay";
+    private static final String PARAM_MAXDELAY = "maxdelay";
     /**
      * Protocol identifier, obtained from config property
      */
     private final int IPFSProtocolId;
+    private final int netSize;
+    private final double dropRate;
+    private final int minDelay;
+    private final int maxDelay;
 
     /**
      * The basic constructor that reads the configuration file.
@@ -32,6 +39,12 @@ public class IPFSObserver implements Control {
      */
     public IPFSObserver(String prefix) {
         IPFSProtocolId = Configuration.getPid(prefix + "." + PARAM_PROTOCOL);
+        netSize = Configuration.getInt(prefix + "." + PARAM_NETSIZE);
+        dropRate = Configuration.getDouble(prefix + "." + PARAM_DROPRATE);
+        minDelay = Configuration.getInt(prefix + "." + PARAM_MINDELAY);
+        maxDelay = Configuration.getInt(prefix + "." + PARAM_MAXDELAY);
+
+        System.out.println("A new instance");
     }
 
     /**
