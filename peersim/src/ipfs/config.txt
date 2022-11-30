@@ -1,11 +1,15 @@
+#################### Tunable Experiment Params ####################
 # network size
-SIZE 500
+SIZE 1000
 
 # chunk size
 CHUNKSIZE 256
 
 # no. of chunks at the initial stage
 NUMCHUNK SIZE * 100
+
+# no. of peers of each node
+K 60
 
 # parameters of periodic execution
 CYCLES 5
@@ -15,10 +19,12 @@ CYCLE SIZE*1000
 # delay values here are relative to cycle length, in percentage,
 # eg 50 means half the cycle length, 200 twice the cycle length, etc.
 MINDELAY 0
-MAXDELAY 50
-# drop is a probability, 0<=DROP<=1
-DROP 0
+MAXDELAY 25
 
+# drop is a probability, 0<=DROP<=1
+DROP 0.02
+
+#################### Base Configurations ####################
 random.seed 1234567890
 network.size SIZE
 simulation.endtime CYCLE*CYCLES
@@ -33,7 +39,7 @@ init.net.transport tr
 init.net.numChunk NUMCHUNK
 
 init.rndlink WireKOut
-init.rndlink.k 20
+init.rndlink.k K
 init.rndlink.protocol link
 
 init.utility ipfs.IPFSUtilities
