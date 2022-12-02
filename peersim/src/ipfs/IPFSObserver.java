@@ -65,7 +65,7 @@ public class IPFSObserver implements Control {
         minDelay = Configuration.getInt(prefix + "." + PARAM_MINDELAY);
         maxDelay = Configuration.getInt(prefix + "." + PARAM_MAXDELAY);
 
-        PATH = "exp/" + netSize + "-" + dropRate + "-" + minDelay + "-" + maxDelay + "-60wire" + ".csv";
+        PATH = "exp/" + netSize + "-" + dropRate + "-" + minDelay + "-" + maxDelay + "-500chunks" + ".csv";
 
         String[] header = {"time", "success", "flying", "dropped", "failed"};
         try {

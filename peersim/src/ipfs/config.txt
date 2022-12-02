@@ -6,10 +6,10 @@ SIZE 1000
 CHUNKSIZE 256
 
 # no. of chunks at the initial stage
-NUMCHUNK SIZE * 100
+NUMCHUNK SIZE * 500
 
 # no. of peers of each node
-K 60
+K 20
 
 # parameters of periodic execution
 CYCLES 5
