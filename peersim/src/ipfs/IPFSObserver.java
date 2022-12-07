@@ -1,10 +1,6 @@
 package ipfs;
 
-import com.opencsv.CSVWriter;
-import ipfs.message.IPFSMessage;
 import ipfs.message.MessageStatus;
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.StringUtils;
 import peersim.config.Configuration;
 import peersim.core.Control;
 import peersim.util.IncrementalStats;
@@ -12,13 +8,10 @@ import peersim.util.IncrementalStats;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -65,7 +58,7 @@ public class IPFSObserver implements Control {
         minDelay = Configuration.getInt(prefix + "." + PARAM_MINDELAY);
         maxDelay = Configuration.getInt(prefix + "." + PARAM_MAXDELAY);
 
-        PATH = "exp/" + netSize + "-" + dropRate + "-" + minDelay + "-" + maxDelay + "-500chunks" + ".csv";
+        PATH = "exp/" + netSize + "-" + dropRate + "-" + minDelay + "-" + maxDelay + "" + ".csv";
 
         String[] header = {"time", "success", "flying", "dropped", "failed"};
         try {
@@ -91,7 +84,8 @@ public class IPFSObserver implements Control {
 //        for (Map.Entry<IPFSMessage, MessageStatus> entry : globalRequestStatus.entrySet()) {
 //            if (entry.getValue() == MessageStatus.FLYING) {
 //                flying++;
-//            } else if (entry.getValue() == MessageStatus.SUCCESS) {
+//            } else if (entry.getValue() == MessageStatus.SU
+//            CCESS) {
 //                successCount++;
 //            } else if (entry.getValue() == MessageStatus.DROPPED) {
 //                dropped++;
