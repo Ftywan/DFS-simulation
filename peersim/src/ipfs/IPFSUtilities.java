@@ -12,10 +12,7 @@ import peersim.config.Configuration;
 import peersim.core.*;
 import peersim.transport.Transport;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class IPFSUtilities implements Control {
     private static final String PAR_TRANSPORT = "transport";
@@ -30,7 +27,6 @@ public class IPFSUtilities implements Control {
         fileOperations.add(MessageType.ADD);
         fileOperations.add(MessageType.DELETE);
         fileOperations.add(MessageType.RETRIEVE);
-//        fileOperations.add(MessageType.UPDATE);
     }
 
     private final Graph<Node, DefaultWeightedEdge> abstractGraph;
@@ -62,10 +58,27 @@ public class IPFSUtilities implements Control {
         return fileIds[CommonState.r.nextInt(globalContentAddressingTable.size())];
     }
 
+    public static List<String> getRandomNFileIdsInSameNode(Node target, int n, int storageProtocolId) {
+        return ((IPFS) target.getProtocol(storageProtocolId)).getNFileIds(n);
+    }
+
     public static MessageType getRandomRequestType() {
         int i = CommonState.r.nextInt(fileOperations.size());
         MessageType operation = fileOperations.toArray(new MessageType[0])[i];
         return operation;
+    }
+
+    /**
+     *
+     * @param singleFilePercentage the probability mass of X<1
+     * @return the ceiling value of a random variable following exponential distribution
+     */
+    public static int getRandomRequestNumber(double singleFilePercentage) {
+        assert singleFilePercentage != 1.0;
+        // quantile formula: X = -ln(1-p)/lambda; X = 1 here
+        double lambda = -Math.log(1-singleFilePercentage);
+        // random sample using exponential distribution
+        return (int) Math.ceil(Math.log(1-CommonState.r.nextDouble())/(-lambda));
     }
 
     public static long getLatency(Node from, Node to) {

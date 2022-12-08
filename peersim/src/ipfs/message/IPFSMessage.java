@@ -30,6 +30,12 @@ public class IPFSMessage {
         this.ledger = new Ledger(byteSent, byteRecv);
     }
 
+    public IPFSMessage(Node sender, MessageType type, Ledger ledger) {
+        this.sender = sender;
+        this.type = type;
+        this.ledger = ledger;
+    }
+
     /**
      * For Response
      *
