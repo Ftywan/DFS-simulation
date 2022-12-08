@@ -75,34 +75,10 @@ public class IPFSObserver implements Control {
      */
     @Override
     public boolean execute() {
-//        System.out.println("Observing");
-//        int failCount = 0;
-//        int successCount = 0;
-//        int flying = 0;
-//        int dropped = 0;
-
-//        for (Map.Entry<IPFSMessage, MessageStatus> entry : globalRequestStatus.entrySet()) {
-//            if (entry.getValue() == MessageStatus.FLYING) {
-//                flying++;
-//            } else if (entry.getValue() == MessageStatus.SU
-//            CCESS) {
-//                successCount++;
-//            } else if (entry.getValue() == MessageStatus.DROPPED) {
-//                dropped++;
-//            } else if (entry.getValue() == MessageStatus.REJECTED) {
-//                failCount++;
-//            }
-//        }
         IncrementalStats stats = new IncrementalStats();
         long time = peersim.core.CommonState.getTime();
 
         Map<MessageStatus, Long> count = globalRequestStatus.values().stream().collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
-
-//        System.out.println(
-//                "success: " + count.getOrDefault(MessageStatus.SUCCESS, 0L) +
-//                " flying: " + count.getOrDefault(MessageStatus.FLYING, 0L) +
-//                " dropped: " + count.getOrDefault(MessageStatus.DROPPED, 0L) +
-//                " failed: " + count.getOrDefault(MessageStatus.REJECTED, 0L));
         long[] row = {
                 time,
                 count.getOrDefault(MessageStatus.SUCCESS, 0L),
@@ -111,7 +87,7 @@ public class IPFSObserver implements Control {
                 count.getOrDefault(MessageStatus.REJECTED, 0L)
         };
         try {
-            Files.writeString(Path.of(PATH), Arrays.stream(row).mapToObj(String::valueOf).collect(Collectors.joining(","))+"\n", StandardOpenOption.APPEND);
+            Files.writeString(Path.of(PATH), Arrays.stream(row).mapToObj(String::valueOf).collect(Collectors.joining(",")) + "\n", StandardOpenOption.APPEND);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

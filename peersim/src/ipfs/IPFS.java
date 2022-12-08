@@ -14,9 +14,7 @@ import static ipfs.IPFSUtilities.*;
 
 public class IPFS implements CDProtocol, EDProtocol {
     private static final String PARAM_DROP = "drop";
-    //    private Map<IPFSMessage, Boolean> globalRequestStatus; // message reference -> null (haven't heard back) / false (rejected) / true (completed)
     private final double dropRate;
-    // TODO: implement interface method for initializer
     private Map<String, FileChunk> storage;
     private Map<Long, Ledger> debtMap; // peer node ID -> (bytes sent to this peer, bytes received from this peer)
 
@@ -54,12 +52,6 @@ public class IPFS implements CDProtocol, EDProtocol {
             dest = globalContentAddressingTable.get(chunkId);
             Ledger debt = getDebtInfo(dest.getID());
             message = new RetrieveFileMessage(node, chunkId, debt.getByteSent(), debt.getByteRecv());
-//        } else if (type == MessageType.UPDATE) {
-//            String chunkId = getRandomFileIdInSystem();
-//            dest = globalContentAddressingTable.get(chunkId);
-//            Ledger debt = getDebtInfo(dest.getID());
-//            message = new UpdateFileMessage(node, chunkId, new FileChunk(), debt.getByteSent(), debt.getByteRecv());
-//            EDSimulator.add(getLatency(node, dest), message, dest, protocolID);
         } else {
             throw new UnsupportedOperationException();
         }
@@ -94,8 +86,8 @@ public class IPFS implements CDProtocol, EDProtocol {
                     // Add file to local and global content addressing table
                     FileChunk fileChunk = ((AddFileMessage) message).getChunkToSave();
                     storage.put(fileChunk.getId(), fileChunk);
-                    // TODO: decentralized IO will not reflect in global content addressing immediately;
-                    //  To add content addressing table updating mechanism
+                    // TODO:    decentralized IO will not reflect in global content addressing immediately;
+                    //          To add content addressing table updating mechanism
                     globalContentAddressingTable.put(fileChunk.getId(), node);
                     debtMap.get(message.getSender().getID()).incrementByteRecv(1);
 
@@ -129,22 +121,6 @@ public class IPFS implements CDProtocol, EDProtocol {
                 } else {
                     resp = new RetrieveFileResponse(node, MessageType.OPERATION_REJECTED, null, message);
                 }
-
-//            } else if (message instanceof UpdateFileMessage) {
-//                System.out.println("Processing updating");
-//                if (bitSwap) {
-//                    UpdateFileMessage updateFileMessage = (UpdateFileMessage) message;
-//                    String chunkId = updateFileMessage.getChunkId();
-//                    FileChunk newContent = updateFileMessage.getChunkToUpdate();
-//
-//                    storage.put(chunkId, newContent);
-//                    globalContentAddressingTable.put(newContent.getId(), node);
-//                    debtMap.get(message.getSender().getID()).incrementByteRecv(1);
-//
-//                    resp = new UpdateFileResponse(message.getSender(), MessageType.OPERATION_COMPLETED);
-//                } else {
-//                    resp = new UpdateFileResponse(message.getSender(), MessageType.OPERATION_REJECTED);
-//                }
             } else {
                 throw new UnsupportedOperationException();
             }
@@ -169,8 +145,6 @@ public class IPFS implements CDProtocol, EDProtocol {
                 // No changes in debt ledger for deletion operations
             } else if (message instanceof RetrieveFileResponse) {
                 debtMap.get(message.getSender().getID()).incrementByteRecv(1);
-//            } else if (message instanceof UpdateFileMessage) {
-//                debtMap.get(message.getSender().getID()).incrementByteSent(1);
             } else {
                 throw new UnsupportedOperationException();
             }
@@ -187,12 +161,11 @@ public class IPFS implements CDProtocol, EDProtocol {
         }
         ((IPFS) newProtocol).storage = new HashMap<>();
         ((IPFS) newProtocol).debtMap = new HashMap<>();
-//        ((IPFS) newProtocol).globalRequestStatus = new HashMap<>();
 
         return newProtocol;
     }
 
-    //    Utils=============================================================================================================
+    // Utils============================================================================================================
     private Ledger getDebtInfo(Long nodeId) {
         if (!debtMap.containsKey(nodeId)) {
             debtMap.put(nodeId, new Ledger(0, 0));

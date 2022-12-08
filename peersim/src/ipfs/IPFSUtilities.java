@@ -72,9 +72,9 @@ public class IPFSUtilities implements Control {
         return (long) shortestPaths.getPathWeight(from, to);
     }
 
-    public static boolean dropped(Node from, Node to , double dropRate) {
+    public static boolean dropped(Node from, Node to, double dropRate) {
         int pathSections = shortestPaths.getPath(from, to).getLength();
-        double successRate = Math.pow((1-dropRate), pathSections);
+        double successRate = Math.pow((1 - dropRate), pathSections);
         return CommonState.r.nextDouble() > successRate;
     }
 
