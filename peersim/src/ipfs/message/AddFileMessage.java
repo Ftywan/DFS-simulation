@@ -24,4 +24,9 @@ public class AddFileMessage extends IPFSMessage {
             chunksToSave.add(new FileChunk());
         }
     }
+
+    @Override
+    public int getRequestCount(){
+        return chunksToSave.size();
+    }
 }

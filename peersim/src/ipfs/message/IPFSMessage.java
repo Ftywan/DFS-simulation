@@ -46,4 +46,8 @@ public class IPFSMessage {
         this.sender = sender;
         this.type = type;
     }
+
+    public int getRequestCount() {
+        return 0;
+    }
 }

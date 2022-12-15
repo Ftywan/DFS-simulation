@@ -3,26 +3,37 @@ package ipfs;
 import ipfs.message.*;
 import peersim.cdsim.CDProtocol;
 import peersim.config.Configuration;
+import peersim.core.CommonState;
 import peersim.core.Node;
 import peersim.edsim.EDProtocol;
 import peersim.edsim.EDSimulator;
 
+import javax.naming.ConfigurationException;
 import java.util.*;
 
 import static ipfs.IPFSUtilities.*;
 
 public class IPFS implements CDProtocol, EDProtocol {
     private static final String PARAM_DROP = "drop";
-
-    private static final double SINGLE_OPERATION_PERCENTAGE = 0.5;
+    private static final String PARAM_SINGLE_REQUEST_PERCENTAGE = "singleRequestPercentage";
+    private static final String PARAM_ADD_PERCENTAGE = "addPercentage";
+    private static final String PARAM_DELETE_PERCENTAGE = "deletePercentage";
+    private final double singleOperationPercentage;
+    private final double addPercentage;
+    private final double deletePercentage;
     private final double dropRate;
     private Map<String, FileChunk> storage;
     private Map<Long, Ledger> debtMap; // peer node ID -> Ledger(bytes sent to this peer, bytes received from this peer)
+
+    private double DHTFactor = 0.879;
 
     public IPFS(String prefix) {
         debtMap = new HashMap<>();
         storage = new HashMap<>();
         dropRate = Configuration.getDouble(prefix + "." + PARAM_DROP);
+        singleOperationPercentage = Configuration.getDouble(prefix + "." + PARAM_SINGLE_REQUEST_PERCENTAGE);
+        addPercentage = Configuration.getDouble(prefix+ "."+PARAM_ADD_PERCENTAGE);
+        deletePercentage = Configuration.getDouble(prefix+"."+PARAM_DELETE_PERCENTAGE);
     }
 
     /**
@@ -34,8 +45,8 @@ public class IPFS implements CDProtocol, EDProtocol {
     public void nextCycle(Node node, int protocolID) {
         Node dest;
         IPFSMessage message;
-        MessageType type = getRandomRequestType();
-        int numOfRequest = getRandomRequestNumber(SINGLE_OPERATION_PERCENTAGE);
+        MessageType type = getRandomRequestType(addPercentage, deletePercentage);
+        int numOfRequest = getRandomRequestNumber(singleOperationPercentage);
 
         if (type == MessageType.ADD) {
             dest = getRandomNode();
@@ -61,6 +72,7 @@ public class IPFS implements CDProtocol, EDProtocol {
         if (!dropped(node, dest, dropRate)) {
             EDSimulator.add(getLatency(node, dest), message, dest, protocolID);
             globalRequestStatus.put(message, MessageStatus.FLYING);
+            startTimestamp.put(message, CommonState.getTime());
         } else {
             globalRequestStatus.put(message, MessageStatus.DROPPED);
         }
@@ -131,7 +143,11 @@ public class IPFS implements CDProtocol, EDProtocol {
             // Simulating dropping
             // Send response back to the file operation requester
             if (!dropped(node, message.getSender(), dropRate)) {
-                EDSimulator.add(getLatency(node, message.getSender()), resp, message.getSender(), pid);
+                long latency = getLatency(node, message.getSender());
+                if (! (message instanceof RetrieveFileMessage)) {
+                    latency = Math.round(latency / (1 - DHTFactor));
+                }
+                EDSimulator.add(latency, resp, message.getSender(), pid);
             } else {
                 assert (globalRequestStatus.containsKey(message));
                 globalRequestStatus.put(message, MessageStatus.DROPPED);
@@ -141,7 +157,9 @@ public class IPFS implements CDProtocol, EDProtocol {
         // Handle file operation responses
         else if (message instanceof IPFSResponse) {
             globalRequestStatus.put(((IPFSResponse) message).getRequestMessage(), message.getType() == MessageType.OPERATION_COMPLETED ? MessageStatus.SUCCESS : MessageStatus.REJECTED);
-
+            if (message.getType() == MessageType.OPERATION_COMPLETED) {
+                endTimestamp.put(((IPFSResponse) message).getRequestMessage(), CommonState.getTime());
+            }
             if (message instanceof AddFileResponse) {
                 debtMap.get(message.getSender().getID()).incrementByteSent(1);
             } else if (message instanceof DeleteFileResponse) {
@@ -183,6 +201,8 @@ public class IPFS implements CDProtocol, EDProtocol {
 
     public List<String> getNFileIds(int n) {
         List<String> ids = new ArrayList<>(storage.keySet());
+        n = Math.min(n, ids.size() - 1);
+        n = Math.max(0, n);
         Collections.shuffle(ids);
         return ids.subList(0, n);
     }

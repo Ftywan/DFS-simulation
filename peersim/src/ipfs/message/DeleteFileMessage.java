@@ -14,4 +14,9 @@ public class DeleteFileMessage extends IPFSMessage {
         super(sender, MessageType.DELETE, ledger);
         this.chunkIds = chunkIds;
     }
+
+    @Override
+    public int getRequestCount() {
+        return chunkIds.size();
+    }
 }

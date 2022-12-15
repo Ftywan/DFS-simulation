@@ -14,4 +14,9 @@ public class RetrieveFileMessage extends IPFSMessage {
         super(sender, MessageType.RETRIEVE, ledger);
         this.chunkIds = chunkIds;
     }
+
+    @Override
+    public int getRequestCount() {
+        return chunkIds.size();
+    }
 }

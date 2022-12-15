@@ -8,6 +8,7 @@ import org.jgrapht.GraphPath;
 import org.jgrapht.alg.shortestpath.DijkstraShortestPath;
 import org.jgrapht.graph.DefaultUndirectedWeightedGraph;
 import org.jgrapht.graph.DefaultWeightedEdge;
+import org.nfunk.jep.function.Add;
 import peersim.config.Configuration;
 import peersim.core.*;
 import peersim.transport.Transport;
@@ -21,7 +22,11 @@ public class IPFSUtilities implements Control {
     public static Set<Long> deadNode = new HashSet<>();
     public static Set<MessageType> fileOperations = new HashSet<>();
     public static HashMap<IPFSMessage, MessageStatus> globalRequestStatus;
+    public static HashMap<IPFSMessage, Long> startTimestamp;
+    public static HashMap<IPFSMessage, Long> endTimestamp;
     private static DijkstraShortestPath<Node, DefaultWeightedEdge> shortestPaths;
+
+    public static List<Long> distributionOrderNodeIds;
 
     static {
         fileOperations.add(MessageType.ADD);
@@ -38,6 +43,8 @@ public class IPFSUtilities implements Control {
         linkable = Configuration.getPid(prefix + "." + PAR_LINKABLE);
         abstractGraph = new DefaultUndirectedWeightedGraph<>(DefaultWeightedEdge.class);
         globalRequestStatus = new HashMap<>();
+        startTimestamp = new HashMap<>();
+        endTimestamp = new HashMap<>();
     }
 
     //    Randomization Utils ==============================================================================================
@@ -62,9 +69,18 @@ public class IPFSUtilities implements Control {
         return ((IPFS) target.getProtocol(storageProtocolId)).getNFileIds(n);
     }
 
-    public static MessageType getRandomRequestType() {
-        int i = CommonState.r.nextInt(fileOperations.size());
-        MessageType operation = fileOperations.toArray(new MessageType[0])[i];
+    public static MessageType getRandomRequestType(double addPercentage, double deletePercentage) {
+//        int i = CommonState.r.nextInt(fileOperations.size());
+//        MessageType operation = fileOperations.toArray(new MessageType[0])[i];
+        MessageType operation;
+        double i = CommonState.r.nextDouble();
+        if (i < addPercentage) {
+            operation = MessageType.ADD;
+        } else if (i < deletePercentage + addPercentage) {
+            operation = MessageType.DELETE;
+        } else {
+            operation = MessageType.RETRIEVE;
+        }
         return operation;
     }
 

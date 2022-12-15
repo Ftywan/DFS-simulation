@@ -5,6 +5,13 @@ import peersim.core.CommonState;
 import peersim.core.Control;
 import peersim.core.Fallible;
 import peersim.core.Network;
+import peersim.transport.UnreliableTransport;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+
+import static ipfs.IPFSUtilities.distributionOrderNodeIds;
 
 /**
  * Initializer class for the entre network, with all the nodes
@@ -32,23 +39,27 @@ public class NetworkInitializer implements Control {
             IPFSUtilities.deadNode.add(Network.get(deadNodeId).getID());
         }
 
-        // Initialize global file distribution
+        // Initialize global file distribution following the normal distribution
+        // Mean value is network size/2 and sigma value is size/6
+        long mean = Math.round(Network.size() / 2.0);
+        long sigma = Math.round(Network.size() / 6.0);
+        List<Long> distributionOrder = new ArrayList<>();
+        for (int i = 0; i < Network.size(); i ++) {
+            distributionOrder.add(Network.get(i).getID());
+        }
+        distributionOrderNodeIds = distributionOrder;
+
         for (int i = 0; i < numOfChunk; i++) {
             FileChunk chunk = new FileChunk();
             int assignedNodeId;
             do {
-                assignedNodeId = CommonState.r.nextInt(Network.size());
+                assignedNodeId = (int) Math.round(CommonState.r.nextGaussian(mean, sigma));
+                assignedNodeId = Math.max(assignedNodeId, 0);
+                assignedNodeId = Math.min(assignedNodeId, Network.size() - 1);
             } while (!Network.get(assignedNodeId).isUp());
             IPFSUtilities.globalContentAddressingTable.put(chunk.getId(), Network.get(assignedNodeId));
             ((IPFS) Network.get(assignedNodeId).getProtocol(IPFSProtocolId)).addToStorage(chunk);
         }
-
-        // Initialize the event schedule
-//        for (int i = 0; i < Network.size(); i++) {
-//            Node node = getRandomNode();
-//            IPFSMessage message = new IPFSMessage(node, MessageType.ADD);
-//            EDSimulator.add(1000, message, node, );
-//        }
         return false;
     }
 }

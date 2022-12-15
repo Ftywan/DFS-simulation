@@ -2,7 +2,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from os import listdir
 
-PATH = 'exp'
+PATH = 'exp-archive'
 DEST = 'graph'
 files = [file for file in listdir(PATH) if '.csv' in file]
 
