@@ -5,11 +5,9 @@ import peersim.core.CommonState;
 import peersim.core.Control;
 import peersim.core.Fallible;
 import peersim.core.Network;
-import peersim.transport.UnreliableTransport;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 import static ipfs.IPFSUtilities.distributionOrderNodeIds;
 
@@ -44,7 +42,7 @@ public class NetworkInitializer implements Control {
         long mean = Math.round(Network.size() / 2.0);
         long sigma = Math.round(Network.size() / 6.0);
         List<Long> distributionOrder = new ArrayList<>();
-        for (int i = 0; i < Network.size(); i ++) {
+        for (int i = 0; i < Network.size(); i++) {
             distributionOrder.add(Network.get(i).getID());
         }
         distributionOrderNodeIds = distributionOrder;

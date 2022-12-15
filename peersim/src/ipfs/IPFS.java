@@ -8,7 +8,6 @@ import peersim.core.Node;
 import peersim.edsim.EDProtocol;
 import peersim.edsim.EDSimulator;
 
-import javax.naming.ConfigurationException;
 import java.util.*;
 
 import static ipfs.IPFSUtilities.*;
@@ -22,22 +21,22 @@ public class IPFS implements CDProtocol, EDProtocol {
     private final double addPercentage;
     private final double deletePercentage;
     private final double dropRate;
+    private final double DHTFactor = 0.879;
     private Map<String, FileChunk> storage;
     private Map<Long, Ledger> debtMap; // peer node ID -> Ledger(bytes sent to this peer, bytes received from this peer)
-
-    private double DHTFactor = 0.879;
 
     public IPFS(String prefix) {
         debtMap = new HashMap<>();
         storage = new HashMap<>();
         dropRate = Configuration.getDouble(prefix + "." + PARAM_DROP);
         singleOperationPercentage = Configuration.getDouble(prefix + "." + PARAM_SINGLE_REQUEST_PERCENTAGE);
-        addPercentage = Configuration.getDouble(prefix+ "."+PARAM_ADD_PERCENTAGE);
-        deletePercentage = Configuration.getDouble(prefix+"."+PARAM_DELETE_PERCENTAGE);
+        addPercentage = Configuration.getDouble(prefix + "." + PARAM_ADD_PERCENTAGE);
+        deletePercentage = Configuration.getDouble(prefix + "." + PARAM_DELETE_PERCENTAGE);
     }
 
     /**
      * Triggered by the cycle-driven
+     *
      * @param node       the node on which this component is run
      * @param protocolID the id of this protocol in the protocol array
      */
@@ -144,7 +143,7 @@ public class IPFS implements CDProtocol, EDProtocol {
             // Send response back to the file operation requester
             if (!dropped(node, message.getSender(), dropRate)) {
                 long latency = getLatency(node, message.getSender());
-                if (! (message instanceof RetrieveFileMessage)) {
+                if (!(message instanceof RetrieveFileMessage)) {
                     latency = Math.round(latency / (1 - DHTFactor));
                 }
                 EDSimulator.add(latency, resp, message.getSender(), pid);

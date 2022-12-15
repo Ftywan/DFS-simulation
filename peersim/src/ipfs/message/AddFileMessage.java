@@ -12,11 +12,6 @@ public class AddFileMessage extends IPFSMessage {
     @Getter
     private final List<FileChunk> chunksToSave;
 
-//    public AddFileMessage(Node sender, FileChunk chunk, Long byteSent, Long byteRecv) {
-//        super(sender, MessageType.ADD, byteSent, byteRecv);
-//        this.chunkToSave = chunk;
-//    }
-
     public AddFileMessage(Node sender, int numOfChunk, Ledger ledger) {
         super(sender, MessageType.ADD, ledger);
         chunksToSave = new ArrayList<>();
@@ -26,7 +21,7 @@ public class AddFileMessage extends IPFSMessage {
     }
 
     @Override
-    public int getRequestCount(){
+    public int getRequestCount() {
         return chunksToSave.size();
     }
 }

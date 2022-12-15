@@ -3,28 +3,21 @@ package ipfs;
 import ipfs.message.IPFSMessage;
 import ipfs.message.MessageStatus;
 import ipfs.message.MessageType;
-import org.apache.commons.lang3.ArrayUtils;
 import peersim.config.Configuration;
 import peersim.core.CommonState;
 import peersim.core.Control;
 import peersim.core.Network;
 import peersim.core.Node;
-import peersim.util.IncrementalStats;
 
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.ObjectInputFilter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static ipfs.IPFSUtilities.*;
 import static java.nio.file.StandardOpenOption.APPEND;
-import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
 
 /**
  * Observer class to monitor the overall status and generate simulation results
@@ -35,7 +28,6 @@ public class IPFSObserver implements Control {
      *
      * @config
      */
-    private static final String PARAM_PROTOCOL = "protocol";
     private static final String PARAM_NETSIZE = "size";
     private static final String PARAM_DROPRATE = "droprate";
     private static final String PARAM_MINDELAY = "mindelay";
@@ -51,7 +43,6 @@ public class IPFSObserver implements Control {
     /**
      * Protocol identifier, obtained from config property
      */
-    private final int IPFSProtocolId;
     private final int netSize;
     private final double dropRate;
     private final int minDelay;
@@ -62,9 +53,7 @@ public class IPFSObserver implements Control {
     private final double deletePercentage;
     private final int k;
 
-    File output;
-    FileWriter writer;
-    List<Node> nodeList;
+    private final List<Node> nodeList;
 
     /**
      * The basic constructor that reads the configuration file.
@@ -72,19 +61,18 @@ public class IPFSObserver implements Control {
      * @param prefix the configuration prefix for this class
      */
     public IPFSObserver(String prefix) {
-        IPFSProtocolId = Configuration.getPid(prefix + "." + PARAM_PROTOCOL);
         netSize = Configuration.getInt(prefix + "." + PARAM_NETSIZE);
         dropRate = Configuration.getDouble(prefix + "." + PARAM_DROPRATE);
         minDelay = Configuration.getInt(prefix + "." + PARAM_MINDELAY);
         maxDelay = Configuration.getInt(prefix + "." + PARAM_MAXDELAY);
         step = Configuration.getInt(prefix + "." + PARAM_STEP);
-        singleRequestPercentage = Configuration.getDouble(prefix + "." +PARAM_SINGLE_REQ_PERCENTAGE);
-        addPercentage = Configuration.getDouble(prefix+"."+PARAM_ADD_PERCENTAGE);
-        deletePercentage = Configuration.getDouble(prefix+"."+PARAM_DELETE_PERCENTAGE);
-        k = Configuration.getInt(prefix+"."+PARAM_K);
+        singleRequestPercentage = Configuration.getDouble(prefix + "." + PARAM_SINGLE_REQ_PERCENTAGE);
+        addPercentage = Configuration.getDouble(prefix + "." + PARAM_ADD_PERCENTAGE);
+        deletePercentage = Configuration.getDouble(prefix + "." + PARAM_DELETE_PERCENTAGE);
+        k = Configuration.getInt(prefix + "." + PARAM_K);
 
-        String identifier = netSize + "nodes" + dropRate + "drop" + minDelay + "minD" + maxDelay + "maxD"+
-                singleRequestPercentage+"singleReq"+addPercentage+"add"+deletePercentage+"delete"+k+"K";
+        String identifier = netSize + "nodes" + dropRate + "drop" + minDelay + "minD" + maxDelay + "maxD" +
+                singleRequestPercentage + "singleReq" + addPercentage + "add" + deletePercentage + "delete" + k + "K";
 
         REQUEST_PATH = "exp/" + identifier + "-request" + ".csv";
         String[] header = {"time", "success", "flying", "dropped", "failed"};
@@ -94,9 +82,9 @@ public class IPFSObserver implements Control {
             throw new RuntimeException(e);
         }
 
-        FILE_PATH = "exp/" + identifier + "-file"+ ".csv";
+        FILE_PATH = "exp/" + identifier + "-file" + ".csv";
         nodeList = new ArrayList<>();
-        for (int i = 0; i < Network.size(); i ++) {
+        for (int i = 0; i < Network.size(); i++) {
             nodeList.add(Network.get(i));
         }
         String fileHeader = distributionOrderNodeIds.stream().map(String::valueOf).collect(Collectors.joining(","));
@@ -145,11 +133,11 @@ public class IPFSObserver implements Control {
             throw new RuntimeException(e);
         }
 
-        long[] fileRow = new long[Network.size()+1];
+        long[] fileRow = new long[Network.size() + 1];
         fileRow[0] = time;
         Map<Long, Long> fileDistribution = getFileCount();
         int idx = 1;
-        for (Node node: nodeList) {
+        for (Node node : nodeList) {
             fileRow[idx] = fileDistribution.getOrDefault(node.getID(), 0L);
             idx++;
         }

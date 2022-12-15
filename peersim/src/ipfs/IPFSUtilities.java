@@ -4,11 +4,9 @@ import ipfs.message.IPFSMessage;
 import ipfs.message.MessageStatus;
 import ipfs.message.MessageType;
 import org.jgrapht.Graph;
-import org.jgrapht.GraphPath;
 import org.jgrapht.alg.shortestpath.DijkstraShortestPath;
 import org.jgrapht.graph.DefaultUndirectedWeightedGraph;
 import org.jgrapht.graph.DefaultWeightedEdge;
-import org.nfunk.jep.function.Add;
 import peersim.config.Configuration;
 import peersim.core.*;
 import peersim.transport.Transport;
@@ -24,9 +22,8 @@ public class IPFSUtilities implements Control {
     public static HashMap<IPFSMessage, MessageStatus> globalRequestStatus;
     public static HashMap<IPFSMessage, Long> startTimestamp;
     public static HashMap<IPFSMessage, Long> endTimestamp;
-    private static DijkstraShortestPath<Node, DefaultWeightedEdge> shortestPaths;
-
     public static List<Long> distributionOrderNodeIds;
+    private static DijkstraShortestPath<Node, DefaultWeightedEdge> shortestPaths;
 
     static {
         fileOperations.add(MessageType.ADD);
@@ -70,8 +67,6 @@ public class IPFSUtilities implements Control {
     }
 
     public static MessageType getRandomRequestType(double addPercentage, double deletePercentage) {
-//        int i = CommonState.r.nextInt(fileOperations.size());
-//        MessageType operation = fileOperations.toArray(new MessageType[0])[i];
         MessageType operation;
         double i = CommonState.r.nextDouble();
         if (i < addPercentage) {
@@ -85,16 +80,15 @@ public class IPFSUtilities implements Control {
     }
 
     /**
-     *
      * @param singleFilePercentage the probability mass of X<1
      * @return the ceiling value of a random variable following exponential distribution
      */
     public static int getRandomRequestNumber(double singleFilePercentage) {
         assert singleFilePercentage != 1.0;
         // quantile formula: X = -ln(1-p)/lambda; X = 1 here
-        double lambda = -Math.log(1-singleFilePercentage);
+        double lambda = -Math.log(1 - singleFilePercentage);
         // random sample using exponential distribution
-        return (int) Math.ceil(Math.log(1-CommonState.r.nextDouble())/(-lambda));
+        return (int) Math.ceil(Math.log(1 - CommonState.r.nextDouble()) / (-lambda));
     }
 
     public static long getLatency(Node from, Node to) {
@@ -147,9 +141,5 @@ public class IPFSUtilities implements Control {
         shortestPaths = new DijkstraShortestPath<>(abstractGraph);
 
         return false;
-    }
-
-    public GraphPath<Node, DefaultWeightedEdge> getShortestPath(Node from, Node to) {
-        return shortestPaths.getPaths(from).getPath(to);
     }
 }
