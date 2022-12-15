@@ -1,4 +1,0 @@
-# configuration file for IPFS network
-random.seed 1234567890
-simulation.cycles 1
-network.size 10
